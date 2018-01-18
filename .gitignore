@@ -1,0 +1,5 @@
+*.vcxproj
+*.filters
+Debug/
+model/
+shader/
