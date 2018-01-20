@@ -8,3 +8,6 @@
 
 - 2018.1.19
 	1. 继承model类，导入off文件并进行渲染
+
+- 2018.1.20
+	1. 继承格式转换的exe。**converModel.exe**，用法：converModel.exe filename1 filename2

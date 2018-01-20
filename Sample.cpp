@@ -21,7 +21,7 @@ void Sample::sampleInit()
 	initOpenGL(width,height);
 	camera = new Camera();
 	shader = new Shader("shader/normalshader.vs", "shader/normalshader.fs");
-	offmodel = new offModel("model/model_3.off");
+	offmodel = new offModel("model/cow.off");
 	offmodel->readyToWork();		// 准备工作
 }
 

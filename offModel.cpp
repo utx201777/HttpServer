@@ -21,7 +21,7 @@ void offModel::readyToWork()
 	findTrianglesNormal();	// 计算三角形法线
 	findAdjactRelation();	// 计算三角形连接性
 	findDihedral();		// 计算二面角(需要先计算法线)
-	loadTriangleSDF("model/model_3_sdf.txt");		// 导入SDF
+	loadTriangleSDF("model/cow_sdf.txt");		// 导入SDF
 	setupModel4();	 // 传输数据
 	findLocalMax();		// 局部最大(需要先计算法线，二面角，连接性，SDF值)
 }
