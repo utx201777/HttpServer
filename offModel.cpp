@@ -353,7 +353,7 @@ void offModel::setupModel_Normal()
 	glBindVertexArray(0);
 }
 
-// 传输函数：提取边缘
+// 传输函数：提取边缘，需要先计算二面角
 void offModel::setupModel_Edge()
 {
 	std::vector<glm::vec3> pointsWithoutEBO(trianglesCnt * 3);	// 三角形展开
