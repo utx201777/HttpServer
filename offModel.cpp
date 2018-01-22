@@ -14,16 +14,13 @@ offModel::~offModel()
 
 }
 
-// 准备工作
+// 准备工作，如果输入文件名则存储特征点
 void offModel::readyToWork()
 {
 	printInfo();		// 打印信息
 	findTrianglesNormal();	// 计算三角形法线
 	findAdjactRelation();	// 计算三角形连接性
-	findDihedral();		// 计算二面角(需要先计算法线)
-	loadTriangleSDF("model/cow_sdf.txt");		// 导入SDF
-	setupModel4();	 // 传输数据
-	findLocalMax();		// 局部最大(需要先计算法线，二面角，连接性，SDF值)
+	findDihedral();			// 计算二面角(需要先计算法线)	
 }
 
 // 导入函数：导入模型
@@ -83,7 +80,7 @@ void offModel::printInfo()
 	std::cout << "包围盒max：" << this->box_max[0] << " " << this->box_max[1] << " " << this->box_max[2] << std::endl;
 	std::cout << "包围盒min：" << this->box_min[0] << " " << this->box_min[1] << " " << this->box_min[2] << std::endl;
 	std::cout << "包围盒中心：" << this->box_center[0] << " " << this->box_center[1] << " " << this->box_center[2] << std::endl;
-	std::cout << "最长边：" << this->maxEdge << std::endl;
+	std::cout << "最长边：" << this->maxEdge << std::endl << std::endl;
 }
 
 // 导入函数：导入三角形SDF
@@ -156,7 +153,7 @@ void offModel::findTrianglesNormal()
 	}
 }
 
-// 计算函数：计算二面角，需要先计算邻接性
+// 计算函数：计算最大二面角，需要先计算邻接性
 void offModel::findDihedral()
 {
 	Dihedral.resize(trianglesCnt);
@@ -173,6 +170,74 @@ void offModel::findDihedral()
 		}
 		Dihedral[i] = angleMax;
 	}
+}
+
+// 计算函数：寻找局部最大点
+void offModel::findLocalMax()
+{
+	std::random_device rd;
+	std::unordered_set<int> specialPoints;
+	for (int i = 0; i < 1000; ++i)
+	{
+		int currentIdx = rd() % trianglesCnt;	// 从一个三角形随机出发
+		std::unordered_set<int> sIndex;
+		sIndex.insert(currentIdx);
+		while (true)
+		{
+			auto vec = adjactRelation[currentIdx];
+			float initSDF = 1;
+			int minIdx = -1;
+			for (auto idx : vec)		// 寻找相邻里的节点中的最小值
+			{
+				// 未遍历过
+				if (specialPoints.count(idx) == 0 && sIndex.count(idx) == 0 && trianglesSDF[idx] < initSDF)
+				{
+					initSDF = trianglesSDF[idx];
+					minIdx = idx;
+				}
+			}
+			// 如果边上的点的最小值比当前点小，则更新当前点，注意判断可能minIdx未赋值
+			if (minIdx != -1 && initSDF <= trianglesSDF[currentIdx])
+			{
+				currentIdx = minIdx;
+				sIndex.insert(currentIdx);
+			}
+			else
+			{
+				break;
+			}
+		}
+		if (Dihedral[currentIdx] > 0.5)
+			specialPoints.insert(currentIdx);
+	}
+
+	// 点的位置是三角形三个点的均值
+	for (auto it = specialPoints.begin(); it != specialPoints.end(); ++it)
+	{
+		glm::ivec3 v = Triangles[*it];
+		glm::vec3 p = (Points[v[0]] + Points[v[1]] + Points[v[2]]);
+		p = p / 3.0f;
+		sPoints.push_back(p);
+		sColor.push_back(glm::vec3(trianglesSDF[*it]));	// 用对应的sdf值	
+		sNormal.push_back(trianglesNormal[*it]);
+	}
+
+	specialPointsCnt = sPoints.size();
+	std::cout << "special Points Cnt :" << specialPointsCnt << std::endl<<std::endl;
+}
+
+// 功能函数：保存sdf值到文件
+void offModel::saveSpecialPoints2File(std::string str)
+{
+	std::ofstream onfs(str);
+	onfs << sPoints.size() << std::endl;
+	for (int i = 0; i < sPoints.size(); ++i)
+	{
+		onfs << sPoints[i][0] << " " << sPoints[i][1] << " " << sPoints[i][2] << std::endl;
+		onfs << sNormal[i][0] << " " << sNormal[i][1] << " " << sNormal[i][2] << std::endl;
+		onfs << sColor[i][0] << std::endl;
+	}
+	onfs.close();
 }
 
 // 传输函数：使用EBO
@@ -197,8 +262,8 @@ void offModel::setupModel()
 	glBindVertexArray(0);
 }
 
-// 传输函数：展开三角形，不使用EBO的结果，绘制SDF
-void offModel::setupModel2()
+// 传输函数：展开三角形，不使用EBO的结果，绘制SDF【使用offshader】
+void offModel::setupModel_SDF()
 {
 	std::vector<glm::vec3> pointsWithoutEBO(trianglesCnt * 3);
 	std::vector<float> pointsSDF(trianglesCnt * 3);
@@ -243,7 +308,7 @@ void offModel::setupModel2()
 }
 
 // 传输函数：绘制法线
-void offModel::setupModel3()
+void offModel::setupModel_Normal()
 {
 	std::vector<glm::vec3> pointsWithoutEBO(trianglesCnt * 3);
 	std::vector<glm::vec3> pointsNormal(trianglesCnt * 3);
@@ -286,11 +351,10 @@ void offModel::setupModel3()
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
-
 }
 
 // 传输函数：提取边缘
-void offModel::setupModel4()
+void offModel::setupModel_Edge()
 {
 	std::vector<glm::vec3> pointsWithoutEBO(trianglesCnt * 3);	// 三角形展开
 	std::vector<glm::vec3> pointsNormal(trianglesCnt * 3);	// 点的法线
@@ -362,57 +426,9 @@ void offModel::setupModel4()
 	glBindVertexArray(0);
 }
 
-// 计算函数：寻找局部最大点
-void offModel::findLocalMax()
+// 传输函数：特征点
+void offModel::setupModel_SpecialPoints()
 {
-	std::random_device rd;
-	std::unordered_set<int> specialPoints;
-	for (int i = 0; i < 1000; ++i)
-	{
-		int currentIdx = rd() % trianglesCnt;	// 从一个三角形随机出发
-		std::unordered_set<int> sIndex;
-		sIndex.insert(currentIdx);
-		while (true)
-		{
-			auto vec = adjactRelation[currentIdx];
-			float initSDF = 1;
-			int minIdx;
-			for (auto idx : vec)		// 寻找相邻里的最大点
-			{
-				// 未遍历过
-				if (specialPoints.count(idx) == 0 && sIndex.count(idx) == 0 && trianglesSDF[idx]<initSDF)
-				{
-					initSDF = trianglesSDF[idx];
-					minIdx = idx;
-				}
-			}				
-			if (initSDF <= trianglesSDF[currentIdx])
-			{
-				currentIdx = minIdx;
-				sIndex.insert(currentIdx);
-			}
-			else
-			{
-				break;
-			}
-		}
-		if (Dihedral[currentIdx]>0.5)
-			specialPoints.insert(currentIdx);
-	}
-	std::vector<glm::vec3> sPoints;
-	std::vector<glm::vec3> sColor;
-	for (auto it = specialPoints.begin(); it != specialPoints.end(); ++it)
-	{
-		glm::ivec3 v = Triangles[*it];
-		glm::vec3 p = (Points[v[0]] + Points[v[1]] + Points[v[2]]);
-		p = p / 3.0f;
-		sPoints.push_back(p);
-		sColor.push_back(glm::vec3(1));
-	}
-	specialPointsCnt = sPoints.size();
-	std::cout << "special Points Cnt :" << specialPointsCnt << std::endl;
-
-	// 传输数据
 	glGenVertexArrays(1, &pVAO);
 	glGenBuffers(1, &pVBO);
 
@@ -436,8 +452,6 @@ void offModel::findLocalMax()
 // 绘制函数：使用EBO
 void offModel::drawModel(Shader * shader)
 {
-	glm::vec3 diffuse(1, 0, 1);	
-	shader->setVec3("diffuseColor", diffuse);
 	shader->Use();
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, Triangles.size()*3, GL_UNSIGNED_INT, 0);
@@ -445,17 +459,20 @@ void offModel::drawModel(Shader * shader)
 }
 
 // 绘制函数：不使用EBO
-void offModel::drawModel2(Shader * shader)
-{
-	glm::vec3 diffuse(1, 0, 1);
-	shader->setVec3("diffuseColor", diffuse);
+void offModel::drawModel_withoutEBO(Shader * shader)
+{	
 	shader->Use();
 	glBindVertexArray(VAO);
 	glDrawArrays(GL_TRIANGLES, 0,trianglesCnt*3);
 	glBindVertexArray(0);
+}
 
+// 绘制函数：绘制点
+void offModel::drawModel_specialPoints(Shader * shader)
+{
+	shader->Use();
 	glBindVertexArray(pVAO);
-	glPointSize(5);
-	glDrawArrays(GL_POINTS, 0, specialPointsCnt);
+	glPointSize(8);
+	glDrawArrays(GL_POINTS, 0, sPoints.size());
 	glBindVertexArray(0);
 }

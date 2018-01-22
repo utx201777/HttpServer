@@ -17,14 +17,13 @@
 		4. 绘制模型
 		5. 计算连接性
 ************************************************************************/
-class ModelBase
+class Model
 {
 public:
 	virtual bool loadModel(std::string str) =0;
 	virtual void printInfo()=0;
 	virtual void setupModel()=0;	
-	virtual void drawModel(Shader *shader)=0;
-	virtual void findAdjactRelation() = 0;	
+	virtual void drawModel(Shader *shader)=0;	
 protected:
 	GLuint VAO;
 	GLuint VBO;

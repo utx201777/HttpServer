@@ -11,3 +11,6 @@
 
 - 2018.1.20
 	1. 继承格式转换的exe。**converModel.exe**，用法：converModel.exe filename1 filename2
+
+- 2018.1.22
+	1. 计算模型的法线，二面角，提取边缘点

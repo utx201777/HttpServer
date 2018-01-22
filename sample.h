@@ -5,6 +5,7 @@
 #include "shader.h"
 #include "glCallback.h"
 #include "offmodel.h"
+#include "specialPointsModel.h"
 #include <vector>
 
 /************************************************************************
@@ -29,7 +30,10 @@ public:
 private:
 	Camera * camera;
 	Shader * shader;
-	offModel * offmodel;
+	offModel * offmodel1;
+	offModel * offmodel2;
+	SpecialPointsModel * spModel1;
+	SpecialPointsModel * spModel2;
 	bool firstMouse;
 	double lastX, lastY;
 	int width, height;
