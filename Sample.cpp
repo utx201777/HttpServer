@@ -22,27 +22,71 @@ void Sample::sampleInit()
 	camera = new Camera();
 	shader = new Shader("shader/normalshader.vs", "shader/normalshader.fs");	
 	
-	offmodel1 = new offModel("model/房顶_1.off");	
-	offmodel1->readyToWork();		
-	offmodel1->loadTriangleSDF("model/房顶_1_sdf.txt");
-	offmodel1->findLocalMax();
-	offmodel1->saveSpecialPoints2File("model/房顶_1_sp.txt");
-	offmodel1->setupModel_Edge();
+	offmodel1 = new offModel("model/cube_4.off");	
+	offmodel1->setOffset(-0.3);
+	offmodel1->modelTransform();
+	offmodel1->readyToWork();
+	//offmodel1->loadTriangleSDF("model/cube_5_without_points_sdf.txt");
+	//offmodel1->findLocalMax();
+	//offmodel1->saveSpecialPoints2File("model/cube_5_without_points_sp.txt");
+	//offmodel1->saveAllPoints("model/cube_4_allpoints_.txt");
+	//offmodel1->setupModel_Edge();	
+	//offmodel1->setupModel_Normal();
+	//offmodel1->setupModel_SDF();
+	offmodel1->setupModel();
 
-	offmodel2 = new offModel("model/房顶_2.off");
+	offmodel2 = new offModel("model/cube_5_without_points.off");
+	offmodel2->setOffset(0.3);
+	offmodel2->modelTransform();
 	offmodel2->readyToWork();
-	offmodel2->loadTriangleSDF("model/房顶_2_sdf.txt");
+	//offmodel1->loadTriangleSDF("model/cube_5_without_points_sdf.txt");
+	//offmodel1->findLocalMax();
+	//offmodel1->saveSpecialPoints2File("model/cube_5_without_points_sp.txt");
+	//offmodel1->saveAllPoints("model/cube_4_allpoints_.txt");
+	//offmodel1->setupModel_Edge();	
+	//offmodel1->setupModel_Normal();
+	//offmodel1->setupModel_SDF();
+	offmodel2->setupModel();
+
+
+	
+	lightModel1 = new LightModel("model/sphere.off");
+	lightModel1->loadPos("model/cube_4_pos.txt");
+	lightModel1->printInfo();
+	lightModel1->modelTransform(offmodel1->modelMat);
+	lightModel1->setupModel();
+
+	lightModel2 = new LightModel("model/sphere.off");
+	lightModel2->loadPos("model/cube_5_points_pos.txt");
+	lightModel2->printInfo();
+	lightModel2->modelTransform(offmodel2->modelMat);
+	lightModel2->setupModel();
+
+	/*
+	offmodel2 = new offModel("model/cube_4.off");
+	offmodel2->setOffset(0.0);
+	offmodel2->modelTransform();
+	offmodel2->readyToWork();
+	offmodel2->loadTriangleSDF("model/cube_4_sdf.txt");
 	offmodel2->findLocalMax();
-	offmodel2->saveSpecialPoints2File("model/房顶_2_sp.txt");
+	offmodel2->saveSpecialPoints2File("model/cube_4_sp.txt");
+	offmodel2->saveAllPoints("model/cube_4_allpoints.txt");
 	offmodel2->setupModel_Edge();
 
-	spModel1 = new SpecialPointsModel("model/房顶_1_sp.txt");
+	spModel1 = new SpecialPointsModel("model/cube_3_sp.txt");
+	spModel1->modelTransform(offmodel1->modelMat);
 	spModel1->readyToWork();
 	spModel1->setupModel();
 
-	spModel2 = new SpecialPointsModel("model/房顶_2_sp.txt");
+	spModel2 = new SpecialPointsModel("model/cube_4_sp.txt");
+	spModel2->modelTransform(offmodel2->modelMat);
 	spModel2->readyToWork();
 	spModel2->setupModel();
+
+	nearModel = new NearestPairModel(spModel1->returnSpecialPoints(), spModel2->returnSpecialPoints());
+	nearModel->findNearestPair();
+	nearModel->setupModel();
+	*/
 }
 
 void Sample::sampleRun()
@@ -101,13 +145,8 @@ void Sample::drawModel()
 	this->treatKey();
 
 	// 注意：glm矩阵是右乘，因此后变换的乘载前面
-
 	glm::mat4 modelMatrix, view, projection;
-	modelMatrix = glm::translate(modelMatrix, glm::vec3(0.3, 0, 0));
-	modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5 / offmodel1->maxEdge));
-	modelMatrix = glm::translate(modelMatrix, -glm::vec3(offmodel1->box_center.x, offmodel1->box_center.y, offmodel1->box_center.z));
-	view = camera->GetViewMatrix();
-	
+	view = camera->GetViewMatrix();	
 	projection = glm::perspective(45.0f, 800.0f / 600.0f, 0.1f, 150.0f);
 	
 	// 传入uniform
@@ -116,15 +155,15 @@ void Sample::drawModel()
 	this->shader->setMat4("view", view);
 	this->shader->setMat4("projection", projection);
 
-	spModel1->drawModel(shader);
-	offmodel1->drawModel_withoutEBO(shader);
-
-	modelMatrix = glm::mat4();
-	modelMatrix = glm::translate(modelMatrix, glm::vec3(-0.3, 0, 0));	
-	modelMatrix = glm::scale(modelMatrix, glm::vec3(0.5 / offmodel2->maxEdge));
-	modelMatrix = glm::translate(modelMatrix, -glm::vec3(offmodel2->box_center.x, offmodel2->box_center.y, offmodel2->box_center.z));
-	shader->Use();
-	this->shader->setMat4("model", modelMatrix);
-	spModel2->drawModel(shader);
-	offmodel2->drawModel_withoutEBO(shader);
+	//spModel1->drawModel(shader);	
+	offmodel1->drawModel(shader);
+	
+	//shader->Use();
+	offmodel2->drawModel(shader);
+	lightModel1->drawModel(shader);
+	lightModel2->drawModel(shader);
+	//lightModel2->drawModel(shader);
+	//spModel2->drawModel(shader);
+	//offmodel2->drawModel_withoutEBO(shader);
+	//nearModel->drawModel(shader);
 }

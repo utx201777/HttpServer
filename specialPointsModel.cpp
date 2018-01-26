@@ -77,3 +77,17 @@ void SpecialPointsModel::drawModel(Shader *shader)
 	glDrawArrays(GL_POINTS,0, specialPoints.size());
 	glBindVertexArray(0);
 }
+
+void SpecialPointsModel::modelTransform(glm::mat4 modelMat)
+{
+	for (int i = 0; i < specialPoints.size(); ++i)
+	{
+		glm::vec4 p = modelMat*glm::vec4(specialPoints[i].pos, 1.0f);
+		specialPoints[i].pos = glm::vec3(p.x, p.y, p.z);
+	}
+}
+
+std::vector<SpecialPoint> SpecialPointsModel::returnSpecialPoints() const
+{
+	return specialPoints;
+}

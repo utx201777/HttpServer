@@ -68,7 +68,26 @@ bool offModel::loadModel(std::string str)
 
 	this->maxEdge = std::max(box_max.x - box_min.x, std::max(box_max.y - box_min.y, box_max.z - box_min.z));
 	this->box_center = glm::vec3((box_max.x + box_min.x) / 2, (box_max.y + box_min.y) / 2, (box_max.z + box_min.z) / 2);
+	
 	return true;
+}
+
+void offModel::setOffset(float o)
+{
+	offset = o;
+	// 平移位置
+	modelMat = glm::translate(modelMat, glm::vec3(offset, 0, 0));
+	modelMat = glm::scale(modelMat, glm::vec3(0.5 / maxEdge));
+	modelMat = glm::translate(modelMat, -glm::vec3(box_center.x, box_center.y, box_center.z));
+}
+
+void offModel::modelTransform()
+{
+	for (int i = 0; i < Points.size(); ++i)
+	{
+		glm::vec4 p = modelMat*glm::vec4(Points[i], 1.0f);
+		Points[i] = glm::vec3(p.x, p.y, p.z);
+	}
 }
 
 // 打印信息
@@ -240,23 +259,41 @@ void offModel::saveSpecialPoints2File(std::string str)
 	onfs.close();
 }
 
+// 功能函数：保存所有经过变换后的点
+void offModel::saveAllPoints(std::string str)
+{
+	std::ofstream onfs(str);
+	onfs << Points.size() << std::endl;
+	for (int i = 0; i < Points.size(); ++i)
+	{
+		onfs << Points[i][0] << " " << Points[i][1] << " " << Points[i][2] << std::endl;		
+	}
+	onfs.close();
+}
+
 // 传输函数：使用EBO
 void offModel::setupModel()
 {
+	std::vector<glm::vec3> color(Points.size(), glm::vec3(1, 0, 0));	// 颜色
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
-	
+
 	glBindVertexArray(VAO);
-	
+
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, Points.size()*sizeof(glm::vec3), &Points[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, Points.size()*sizeof(glm::vec3) + color.size()*sizeof(glm::vec3), NULL, GL_STATIC_DRAW);
+
+	glBufferSubData(GL_ARRAY_BUFFER, 0, Points.size()*sizeof(glm::vec3), &Points[0]);
+	glBufferSubData(GL_ARRAY_BUFFER, Points.size()*sizeof(glm::vec3), color.size()*sizeof(glm::vec3), &color[0]);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, Triangles.size()*sizeof(glm::ivec3), &Triangles[0][0], GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)(Points.size()*sizeof(glm::vec3)));
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);

@@ -17,6 +17,14 @@
 		4. 绘制模型
 		5. 计算连接性
 ************************************************************************/
+
+struct SpecialPoint
+{
+	glm::vec3 pos;
+	glm::vec3 normal;
+	glm::vec3 sdf;
+};
+
 class Model
 {
 public:
@@ -27,5 +35,5 @@ public:
 protected:
 	GLuint VAO;
 	GLuint VBO;
-	GLuint EBO;	
+	GLuint EBO;		
 };

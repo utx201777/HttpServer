@@ -41,10 +41,14 @@ public:
 	void loadTriangleSDF(std::string);
 	void findLocalMax();	// 寻找局部最大点
 	void saveSpecialPoints2File(std::string);
+	void saveAllPoints(std::string);
 
 	void drawModel_withoutEBO(Shader *shader);
-	void drawModel_specialPoints(Shader *shader);	
+	void drawModel_specialPoints(Shader *shader);
 
+	void modelTransform();
+	void setOffset(float o);
+	glm::mat4 modelMat;
 	
 private:
 	std::vector<glm::vec3> Points;	// 点信息
@@ -67,5 +71,7 @@ private:
 
 	void findTrianglesNormal();	// 计算三角形法线
 	void findAdjactRelation();	// 计算连接性
-	void findDihedral();		// 计算二面角
+	void findDihedral();		// 计算二面角	
+
+	float offset=0;
 };

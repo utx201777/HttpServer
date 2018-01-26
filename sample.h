@@ -6,6 +6,8 @@
 #include "glCallback.h"
 #include "offmodel.h"
 #include "specialPointsModel.h"
+#include "nearestPairModel.h"
+#include "lightModel.h"
 #include <vector>
 
 /************************************************************************
@@ -32,8 +34,11 @@ private:
 	Shader * shader;
 	offModel * offmodel1;
 	offModel * offmodel2;
+	NearestPairModel * nearModel;
 	SpecialPointsModel * spModel1;
 	SpecialPointsModel * spModel2;
+	LightModel * lightModel1;
+	LightModel * lightModel2;
 	bool firstMouse;
 	double lastX, lastY;
 	int width, height;
