@@ -259,6 +259,19 @@ void offModel::saveSpecialPoints2File(std::string str)
 	onfs.close();
 }
 
+// 功能函数：保存model矩阵
+void offModel::saveModelMatrix(std::string str)
+{
+	std::ofstream onfs(str);	
+	for (int i = 0; i < 4; ++i)
+	{
+		for (int j = 0; j < 4; ++j)
+			onfs << modelMat[i][j] << " ";
+		onfs << std::endl;
+	}
+	onfs.close();
+}
+
 // 功能函数：保存所有经过变换后的点
 void offModel::saveAllPoints(std::string str)
 {

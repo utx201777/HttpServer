@@ -1,29 +1,27 @@
-#ifndef _SAMPLE_
-#define _SAMPLE_
+#ifndef _SEGMENT_SAMPLE_
+#define _SEGMENT_SAMPLE_
+
 #include "callback.h"
 #include "camera.h"
 #include "shader.h"
 #include "glCallback.h"
-#include "offmodel.h"
-#include "specialPointsModel.h"
-#include "nearestPairModel.h"
-#include "lightModel.h"
-#include <vector>
+#include "segmentModel.h"
+#include "generateModel.h"
 
 /************************************************************************
-   created: 2018/01/18
-   class: Sample
+   created: 2018/02/01
+   class: SegmentSample
    author: linyi
-   usage: 控制基类，集成摄像机，shader，model等多个类，继承自回调基类
+   usage: 用来查看分割的效果
 ************************************************************************/
 
-class Sample :public ICallbacks
+class SegmentSample :public ICallbacks
 {
 public:
-	Sample();
-	virtual ~Sample();
+	SegmentSample();
+	virtual ~SegmentSample();
 	virtual void MouseAction(double x, double y);
-	virtual void KeyAction(int key,int action);
+	virtual void KeyAction(int key, int action);
 	virtual void RenderScene();
 	void sampleInit();
 	void sampleRun();
@@ -32,13 +30,8 @@ public:
 private:
 	Camera * camera;
 	Shader * shader;
-	offModel * offmodel1;
-	offModel * offmodel2;
-	NearestPairModel * nearModel;
-	SpecialPointsModel * spModel1;
-	SpecialPointsModel * spModel2;
-	LightModel * lightModel1;
-	LightModel * lightModel2;
+	SegmentModel *segModel;
+	GenerateModel * genModel;
 	bool firstMouse;
 	double lastX, lastY;
 	int width, height;
@@ -46,5 +39,6 @@ private:
 	GLfloat lastFrame;
 	std::vector<bool> key;
 };
+
 
 #endif

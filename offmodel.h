@@ -6,6 +6,7 @@
 #include <fstream>
 #include <algorithm>
 #include <glm/glm.hpp>
+#include <glm/ext.hpp>
 #include <cmath>
 #include <random>
 #include <unordered_set>
@@ -15,7 +16,7 @@
 
 /************************************************************************
    created: 2018/01/18
-   class: 
+   class: offModel
    author: linyi
    usage: 导入off文件的model，继承于Model基类
 ************************************************************************/
@@ -48,6 +49,8 @@ public:
 
 	void modelTransform();
 	void setOffset(float o);
+	void saveModelMatrix(std::string str);
+
 	glm::mat4 modelMat;
 	
 private:

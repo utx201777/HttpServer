@@ -11,13 +11,14 @@
 class ICallbacks
 {
 public:
+	ICallbacks(){};
 	// 鼠标操作
 	virtual void MouseAction(double x, double y){};
 	// 键盘操作
 	virtual void KeyAction(int key,int action){};
 	// 渲染场景
 	virtual void RenderScene(){};
-
+	virtual ~ICallbacks(){};
 };
 
 #endif
