@@ -68,6 +68,7 @@ class HttpRequest(object):
         self.response_body = ''
         self.session = None
 
+    # 处理请求行
     def passRequestLine(self, request_line):
         header_list = request_line.split(' ')
         self.method = header_list[0].upper()
@@ -76,6 +77,7 @@ class HttpRequest(object):
             self.url = '/index.html'
         self.protocol = header_list[2]
 
+    # 处理头部
     def passRequestHead(self, request_head):
         head_options = request_head.split('\r\n')
         for option in head_options:
@@ -85,6 +87,7 @@ class HttpRequest(object):
         if 'Cookie' in self.head:
             self.Cookie = self.head['Cookie']
 
+    # 处理请求
     def passRequest(self, request):
         if len(request.split('\r\n', 1)) != 2:
             return
@@ -98,12 +101,9 @@ class HttpRequest(object):
         # 不带参数的get视为静态请求
         if self.method == 'POST':
             self.request_data = {}
-            request_body = body.split('\r\n\r\n', 1)[1]
-            #print 'request body ', request_body
-            parameters = request_body.split('&')   # 每一行是一个字段
-            #print 'parameters ', parameters
-            for i in parameters:
-                #print 'i', i
+            request_body = body.split('\r\n\r\n', 1)[1]            
+            parameters = request_body.split('&')   # 每一行是一个字段            
+            for i in parameters:                
                 if i=='':
                     continue
                 key, val = i.split('=', 1)
@@ -123,8 +123,7 @@ class HttpRequest(object):
                 self.staticRequest(HttpRequest.RootDir + self.url)
 
     # 只提供制定类型的静态文件
-    def staticRequest(self, path):
-        # print path
+    def staticRequest(self, path):        
         if not os.path.isfile(path):
             f = open(HttpRequest.NotFoundHtml, 'r')
             self.response_line = ErrorCode.NOT_FOUND
@@ -144,7 +143,7 @@ class HttpRequest(object):
                 self.response_head['Content-Type'] = 'text/html'
                 self.response_body = f.read()
             elif extension_name == '.py':
-                self.dynamicRequest(path)
+                self.dynamicRequest(path)       # 转发到动态请求
             # 其他文件不返回
             else:
                 f = open(HttpRequest.NotFoundHtml, 'r')
