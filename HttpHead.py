@@ -46,7 +46,7 @@ class Session(object):
             node = dom.createElement(key)
             node.appendChild(dom.createTextNode(self.data[key]))
             root.appendChild(node)
-        print self.cook_file
+        print(self.cook_file)
         with open(self.cook_file, 'w') as f:
             dom.writexml(f, addindent='\t', newl='\n', encoding='utf-8')
 
@@ -68,7 +68,6 @@ class HttpRequest(object):
         self.response_body = ''
         self.session = None
 
-    # 处理请求行
     def passRequestLine(self, request_line):
         header_list = request_line.split(' ')
         self.method = header_list[0].upper()
@@ -77,7 +76,6 @@ class HttpRequest(object):
             self.url = '/index.html'
         self.protocol = header_list[2]
 
-    # 处理头部
     def passRequestHead(self, request_head):
         head_options = request_head.split('\r\n')
         for option in head_options:
@@ -87,8 +85,8 @@ class HttpRequest(object):
         if 'Cookie' in self.head:
             self.Cookie = self.head['Cookie']
 
-    # 处理请求
     def passRequest(self, request):
+        request = request.decode('utf-8')
         if len(request.split('\r\n', 1)) != 2:
             return
         request_line, body = request.split('\r\n', 1)
@@ -101,9 +99,9 @@ class HttpRequest(object):
         # 不带参数的get视为静态请求
         if self.method == 'POST':
             self.request_data = {}
-            request_body = body.split('\r\n\r\n', 1)[1]            
-            parameters = request_body.split('&')   # 每一行是一个字段            
-            for i in parameters:                
+            request_body = body.split('\r\n\r\n', 1)[1]
+            parameters = request_body.split('&')   # 每一行是一个字段
+            for i in parameters:
                 if i=='':
                     continue
                 key, val = i.split('=', 1)
@@ -123,7 +121,8 @@ class HttpRequest(object):
                 self.staticRequest(HttpRequest.RootDir + self.url)
 
     # 只提供制定类型的静态文件
-    def staticRequest(self, path):        
+    def staticRequest(self, path):
+        # print path
         if not os.path.isfile(path):
             f = open(HttpRequest.NotFoundHtml, 'r')
             self.response_line = ErrorCode.NOT_FOUND
@@ -143,7 +142,7 @@ class HttpRequest(object):
                 self.response_head['Content-Type'] = 'text/html'
                 self.response_body = f.read()
             elif extension_name == '.py':
-                self.dynamicRequest(path)       # 转发到动态请求
+                self.dynamicRequest(path)
             # 其他文件不返回
             else:
                 f = open(HttpRequest.NotFoundHtml, 'r')

@@ -6,9 +6,9 @@ import socket
 
 
 def post_request():
-    req = 'POST /main.py HTTP/1.1\r\n'
+    req = 'POST /?ni=00 HTTP/1.1\r\n'
     req = req + 'Host: 127.0.0.1:9999\r\n\r\n'
-    req = req + 'name=123\npassword=123'
+    req = req + 'name=linyi&data=163'
     return req
 
 
@@ -20,17 +20,17 @@ def get_request():
 
 def start_request():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect(('127.0.0.1', 9999))    
-    req = get_request()    
+    s.connect(('127.0.0.1', 9999))
+    req = get_request()
     s.send(req)
     buff = []
     while True:
-        d = s.recv(1024)        
+        d = s.recv(1024)
         if d:
             buff.append(d)
         else:
-            break    
-    data = ''.join(buff)    
+            break
+    data = ''.join(buff)
     s.close()
     header, html = data.split('\r\n\r\n', 1)
     f = open('res.html', 'w')
@@ -40,5 +40,5 @@ def start_request():
 
 if __name__ == '__main__':
     start_request()
-    raw_input("press any key to exit;")
+    input("press any key to exit;")
 
